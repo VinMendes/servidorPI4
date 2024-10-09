@@ -18,13 +18,13 @@ public class MongoDB {
             .build();
 
 
-    public static void insertDocument(String jsonDocument) throws Exception {
+    public static void insertDocument(String jsonDocument, String colecao) throws Exception {
         try (MongoClient mongoClient = MongoClients.create(settings)) {
             // Conectando ao banco de dados 'empresa'
             MongoDatabase database = mongoClient.getDatabase("mensagem");
 
             // Acessando a coleção 'empresas'
-            MongoCollection<Document> collection = database.getCollection("mensagens");
+            MongoCollection<Document> collection = database.getCollection(colecao);
 
             // Convertendo o JSON para um documento BSON
             Document document = Document.parse(jsonDocument);
