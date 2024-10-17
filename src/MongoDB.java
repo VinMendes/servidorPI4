@@ -21,7 +21,7 @@ public class MongoDB {
     public static void insertDocument(String jsonDocument, String colecao) throws Exception {
         try (MongoClient mongoClient = MongoClients.create(settings)) {
             // Conectando ao banco de dados 'empresa'
-            MongoDatabase database = mongoClient.getDatabase("mensagem");
+            MongoDatabase database = mongoClient.getDatabase("fideliza");
 
             // Acessando a coleção 'empresas'
             MongoCollection<Document> collection = database.getCollection(colecao);

@@ -3,10 +3,7 @@ import java.net.Socket;
 
 public class Servidor {
     public static void main(String[] args) {
-
         ServerSocket server = null;
-        MongoDB mongo;
-
         try {
             server = new ServerSocket(12345);
             System.out.println("Servidor iniciado na porta 12345.");
@@ -14,7 +11,7 @@ public class Servidor {
             while (true) {
                 Socket socket = server.accept();
                 System.out.println("Novo cliente conectado: " + socket.getInetAddress());
-
+                GerenciadorDeClientes conecao = new GerenciadorDeClientes(socket);  // Inicia uma nova thread para cada cliente
             }
 
         } catch (Exception err) {
