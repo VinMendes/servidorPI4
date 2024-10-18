@@ -11,7 +11,7 @@ public class Servidor {
             while (true) {
                 Socket socket = server.accept();
                 System.out.println("Novo cliente conectado: " + socket.getInetAddress());
-                GerenciadorDeClientes conecao = new GerenciadorDeClientes(socket);  // Inicia uma nova thread para cada cliente
+                GerenciadorDeClientes conecao = new GerenciadorDeClientes(socket);
             }
 
         } catch (Exception err) {

@@ -8,9 +8,10 @@ public class GerenciadorDeClientes extends Thread {
 
     GerenciadorDeClientes(Socket cliente) {
         this.cliente = cliente;
-        start(); // Inicia a thread imediatamente
+        start();
     }
 
+    /*
     @Override
     public void run() {
         try {
@@ -45,4 +46,89 @@ public class GerenciadorDeClientes extends Thread {
             }
         }
     }
+     */
+
+    /*
+    @Override
+    public void run() {
+        try {
+            BufferedReader leitor = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
+            String linha = leitor.readLine();  // Lê apenas uma linha e encerra
+
+            if (linha != null) {
+                System.out.println("Recebido do cliente [" + cliente.getInetAddress() + "]: " + linha);
+
+                // Extrair a coleção e o documento da string recebida
+                String[] partes = linha.split(";", 2);
+                if (partes.length == 2) {
+                    String cliente = partes[0].trim();
+                    String programa = partes[1].trim();
+
+                    // Insere o documento na coleção especificada
+                    MongoDB.adcPonto(cliente, programa);
+                } else {
+                    System.err.println("Formato inválido recebido: " + linha);
+                }
+            } else {
+                System.out.println("Nenhuma mensagem recebida do cliente [" + cliente.getInetAddress() + "].");
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao gerenciar cliente: " + e.getMessage());
+        } finally {
+            try {
+                cliente.close();
+            } catch (Exception e) {
+                System.err.println("Erro ao fechar conexão com cliente: " + e.getMessage());
+            }
+        }
+    }
+     */
+
+    @Override
+    public void run() {
+        try {
+            BufferedReader leitor = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
+            String linha = leitor.readLine();  // Lê apenas uma linha e encerra
+
+            if (linha != null) {
+                System.out.println("Recebido do cliente [" + cliente.getInetAddress() + "]: " + linha);
+
+                // Extrair a coleção e o documento da string recebida
+                String[] partes = linha.split(";", 3);
+                if (partes.length == 3) {
+                    String op = partes[0].trim();
+
+                    if(op.equals("1")) {
+                        try {
+                            MongoDB.insertDocument(partes[1].trim(), partes[2].trim());
+                        } catch (Exception e) {
+                            System.err.println(e.getMessage());
+                        }
+                    }
+                    else {
+                        try {
+                            MongoDB.adcPonto(partes[1].trim(), partes[2].trim());
+                        }catch (Exception e) {
+                            System.err.println(e.getMessage());
+                        }
+                    }
+
+                } else {
+                    System.err.println("Formato inválido recebido: " + linha);
+                }
+            } else {
+                System.out.println("Nenhuma mensagem recebida do cliente [" + cliente.getInetAddress() + "].");
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao gerenciar cliente: " + e.getMessage());
+        } finally {
+            try {
+                cliente.close();
+            } catch (Exception e) {
+                System.err.println("Erro ao fechar conexão com cliente: " + e.getMessage());
+            }
+        }
+    }
+
+
 }
