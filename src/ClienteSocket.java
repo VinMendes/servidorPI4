@@ -1,37 +1,73 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 public class ClienteSocket {
+
     public static void main(String[] args) {
+        Socket socket = null;
+        BufferedReader consoleReader = null;
+        BufferedReader servidorReader = null;
+        BufferedWriter servidorWriter = null;
+
         try {
             // Conecta ao servidor na porta 12345
-            Socket socket = new Socket("localhost", 12345);
-            System.out.println("Conectado ao servidor em " + socket.getRemoteSocketAddress());
+            socket = new Socket("localhost", 12345);
+            System.out.println("Conectado ao servidor: " + socket.getRemoteSocketAddress());
 
-            // Cria um BufferedReader para ler dados do console
-            BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
+            // Prepara leitores e escritores para o console e o servidor
+            consoleReader = new BufferedReader(new InputStreamReader(System.in));
+            servidorReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            servidorWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-            // Cria um PrintWriter para enviar dados ao servidor
-            PrintWriter escritor = new PrintWriter(socket.getOutputStream(), true);
+            // Solicita o tipo de operação
+            System.out.println("Digite o número da operação: 1 para inserir documento, 2 para adicionar ponto");
+            String operacao = consoleReader.readLine();
 
-            // Lê a mensagem digitada pelo usuário
-            System.out.print("Digite a mensagem para enviar ao servidor: ");
-            String mensagem = consoleReader.readLine();
+            // Solicita os dados baseados na operação
+            String documentoOuCliente = "";
+            String colecaoOuPrograma = "";
 
-            // Envia a mensagem ao servidor
-            escritor.println(mensagem);
-            System.out.println("Mensagem enviada ao servidor.");
+            if ("1".equals(operacao)) {
+                System.out.print("Insira o documento em formato JSON: ");
+                documentoOuCliente = consoleReader.readLine();
 
-            // Fecha os recursos
-            escritor.close();
-            consoleReader.close();
-            socket.close();
-            System.out.println("Conexão encerrada.");
+                System.out.print("Insira o nome da coleção: ");
+                colecaoOuPrograma = consoleReader.readLine();
+            } else if ("2".equals(operacao)) {
+                System.out.print("Insira o código do cliente: ");
+                documentoOuCliente = consoleReader.readLine();
+
+                System.out.print("Insira o nome do programa de pontos: ");
+                colecaoOuPrograma = consoleReader.readLine();
+            } else {
+                System.out.println("Operação inválida!");
+                return;
+            }
+
+            // Envia os dados para o servidor no formato: operação;documentoOuCliente;colecaoOuPrograma
+            String mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+            servidorWriter.write(mensagem);
+            servidorWriter.newLine();
+            servidorWriter.flush();
+
+            // Aguarda a resposta do servidor
+            String resposta = servidorReader.readLine();
+            System.out.println("\nResposta do servidor: " + resposta);
 
         } catch (Exception e) {
             System.err.println("Erro no cliente: " + e.getMessage());
+        } finally {
+            try {
+                if (consoleReader != null) consoleReader.close();
+                if (servidorReader != null) servidorReader.close();
+                if (servidorWriter != null) servidorWriter.close();
+                if (socket != null) socket.close();
+            } catch (Exception e) {
+                System.err.println("Erro ao fechar recursos do cliente: " + e.getMessage());
+            }
         }
     }
 }
