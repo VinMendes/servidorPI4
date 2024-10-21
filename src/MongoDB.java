@@ -8,7 +8,7 @@ public class MongoDB {
 
     // **Importante**: Evite expor credenciais diretamente no código.
     // Considere utilizar variáveis de ambiente ou arquivos de configuração seguros.
-    final static String connectionString = "mongodb+srv://viniciusmc6:051007@fidelizapi4.i1nd1.mongodb.net/?retryWrites=true&w=majority&appName=FidelizaPI4";
+    final static String connectionString = "mongodb+srv://ServidorAWS:123456qwert@fidelizapi4.i1nd1.mongodb.net/?retryWrites=true&w=majority&appName=FidelizaPI4";
 
     private static final ServerApi serverApi = ServerApi.builder()
             .version(ServerApiVersion.V1)

@@ -14,7 +14,7 @@ public class ClienteSocket {
 
         try {
             // Conecta ao servidor na porta 12345
-            socket = new Socket("localhost", 12345);
+            socket = new Socket("18.230.6.16", 12345);
             System.out.println("Conectado ao servidor: " + socket.getRemoteSocketAddress());
 
             // Prepara leitores e escritores para o console e o servidor
