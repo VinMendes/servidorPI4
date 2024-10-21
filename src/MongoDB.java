@@ -4,6 +4,8 @@ import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.Vector;
+
 public class MongoDB {
 
     // **Importante**: Evite expor credenciais diretamente no código.
@@ -74,5 +76,33 @@ public class MongoDB {
                 }
             }
         }
+    }
+
+    public static String getInfoCliente(String infoBusca, String colecao) {
+
+        MongoClient mongoClient = null;
+        String ret = null;
+
+        try {
+            mongoClient = MongoClients.create(settings);
+            MongoDatabase database = mongoClient.getDatabase("fideliza");
+            MongoCollection<Document> collection = database.getCollection(colecao);
+
+            // Realiza a busca e converte os resultados em String
+            FindIterable<Document> iterable = collection.find(Document.parse(infoBusca));
+            StringBuilder result = new StringBuilder();
+            for (Document doc : iterable) {
+                result.append(doc.toJson()).append("\n"); // Converte o documento para JSON e adiciona à String
+            }
+
+            ret = result.toString();
+            return ret;
+        } catch (MongoException e) {
+            System.err.println(e.getMessage());
+            ret = e.getMessage();
+        } finally {
+            if (mongoClient != null) mongoClient.close();
+        }
+        return ret;
     }
 }
