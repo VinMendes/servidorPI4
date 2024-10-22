@@ -10,7 +10,7 @@ public class Servidor {
 
             while (true) {
                 Socket socket = server.accept();
-                System.out.println("Novo cliente conectado: " + socket.getInetAddress());
+                System.out.println("\n\nNovo cliente conectado: " + socket.getInetAddress());
                 GerenciadorDeClientes conecao = new GerenciadorDeClientes(socket);
             }
 

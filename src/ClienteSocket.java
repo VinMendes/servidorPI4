@@ -11,6 +11,7 @@ public class ClienteSocket {
         BufferedReader consoleReader = null;
         BufferedReader servidorReader = null;
         BufferedWriter servidorWriter = null;
+        String mensagem = null;
 
         try {
             // Conecta ao servidor na porta 12345
@@ -23,7 +24,12 @@ public class ClienteSocket {
             servidorWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
             // Solicita o tipo de operação
-            System.out.println("Digite o número da operação: 1 para inserir documento, 2 para adicionar ponto");
+            System.out.println("Digite o número da operação: ");
+            System.out.println("1 para inserir documento");
+            System.out.println("2 para adicionar ponto");
+            System.out.println("3 para consultar um documento");
+            System.out.println("4 para buscar programas de fidelidade pelo firebaseUID");
+
             String operacao = consoleReader.readLine();
 
             // Solicita os dados baseados na operação
@@ -36,25 +42,39 @@ public class ClienteSocket {
 
                 System.out.print("Insira o nome da coleção: ");
                 colecaoOuPrograma = consoleReader.readLine();
+
+                mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+
             } else if ("2".equals(operacao)) {
                 System.out.print("Insira o código do cliente: ");
                 documentoOuCliente = consoleReader.readLine();
 
                 System.out.print("Insira o nome do programa de pontos: ");
                 colecaoOuPrograma = consoleReader.readLine();
+
+                mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+
             } else if ("3".equals(operacao)) {
-                System.out.println("Insira o documento para busca: ");
+                System.out.print("Insira o documento para busca: ");
                 documentoOuCliente = consoleReader.readLine();
 
-                System.out.println("Insira a colecao: ");
+                System.out.print("Insira a coleção: ");
                 colecaoOuPrograma = consoleReader.readLine();
+
+                mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+
+            } else if ("4".equals(operacao)) {
+                System.out.print("Insira o firebaseUID do cliente: ");
+                documentoOuCliente = consoleReader.readLine();
+
+                mensagem = operacao + ";" + documentoOuCliente;
+
             } else {
                 System.out.println("Operação inválida!");
                 return;
             }
 
             // Envia os dados para o servidor no formato: operação;documentoOuCliente;colecaoOuPrograma
-            String mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
             servidorWriter.write(mensagem);
             servidorWriter.newLine();
             servidorWriter.flush();

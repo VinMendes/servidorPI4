@@ -1,9 +1,14 @@
 import com.mongodb.*;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Updates;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 public class MongoDB {
@@ -88,14 +93,15 @@ public class MongoDB {
             MongoDatabase database = mongoClient.getDatabase("fideliza");
             MongoCollection<Document> collection = database.getCollection(colecao);
 
-            // Realiza a busca e converte os resultados em String
-            FindIterable<Document> iterable = collection.find(Document.parse(infoBusca));
-            StringBuilder result = new StringBuilder();
-            for (Document doc : iterable) {
-                result.append(doc.toJson()).append("\n"); // Converte o documento para JSON e adiciona à String
+            // Busca um único documento correspondente
+            Document doc = collection.find(Document.parse(infoBusca)).first();
+
+            if (doc != null) {
+                ret = doc.toJson(); // Converte o documento para JSON
+            } else {
+                ret = "Nenhum documento encontrado.";
             }
 
-            ret = result.toString();
             return ret;
         } catch (MongoException e) {
             System.err.println(e.getMessage());
@@ -103,6 +109,82 @@ public class MongoDB {
         } finally {
             if (mongoClient != null) mongoClient.close();
         }
+
+        return ret;
+    }
+
+    public static String buscarDetalhesProgramasPorFirebaseUID(String firebaseUID) {
+
+        String ret = null;
+        MongoClient mongoClient = null;
+        Iterator<Document> iterator = null;
+        StringBuilder result = new StringBuilder();
+
+        try {
+            mongoClient = MongoClients.create(settings);
+            MongoDatabase database = mongoClient.getDatabase("fideliza");
+
+            // Obter Object ID do cliente
+            MongoCollection<Document> clienteCollection = database.getCollection("clientes");
+            Document clienteDoc = clienteCollection.find(new Document("firebaseUID", firebaseUID)).first();
+
+            if (clienteDoc != null) {
+                String codigoCliente = clienteDoc.getObjectId("_id").toString();
+
+                // Obter dados a respeito dos pontos
+                MongoCollection<Document> pontosCollection = database.getCollection("pontos");
+                FindIterable<Document> pontosDocs = pontosCollection.find(new Document("codigoCliente", codigoCliente));
+                iterator = pontosDocs.iterator();
+
+                while (iterator.hasNext()) {
+                    Document pontoDoc = iterator.next();
+                    String codigoPrograma = pontoDoc.getString("codigoPrograma");
+                    int pontuacaoAtual = pontoDoc.getInteger("pontuacaoAtual", 0);
+
+                    // Buscar detalhes do programa na coleção de programas
+                    MongoCollection<Document> programasCollection = database.getCollection("programas");
+                    Document programaDoc = programasCollection.find(new Document("_id", new ObjectId(codigoPrograma))).first();
+
+                    if (programaDoc != null) {
+                        String codigoEmpresa = programaDoc.getString("codigoEmpresa");
+                        String descricaoPrograma = programaDoc.getString("descricaoDoPrograma");
+                        int pontosNecessarios = programaDoc.getInteger("qtdDePontosNecessarios", 0);
+
+                        // Buscar o nome da empresa na coleção de empresas
+                        MongoCollection<Document> empresasCollection = database.getCollection("empresas");
+                        Document empresaDoc = empresasCollection.find(new Document("_id", new ObjectId(codigoEmpresa))).first();
+
+                        if (empresaDoc != null) {
+                            String nomeEmpresa = empresaDoc.getString("nome");
+
+                            // Montar o resultado em um documento JSON
+                            Document retDoc = new Document();
+                            retDoc.put("empresa", nomeEmpresa);
+                            retDoc.put("descricao", descricaoPrograma);
+                            retDoc.put("pontosNecessarios", pontosNecessarios);
+                            retDoc.put("pontuacaoAtual", pontuacaoAtual);
+
+                            result.append(retDoc.toJson()).append("\n");
+                        }
+                    }
+                }
+            } else {
+                System.out.println("Cliente não encontrado com o firebaseUID: " + firebaseUID);
+            }
+        } catch (MongoException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            if (mongoClient != null) {
+                mongoClient.close();
+            }
+        }
+
+        if(!result.isEmpty()) {
+            ret = result.toString();
+        } else {
+            ret = "Nenhum programa encontrado";
+        }
+
         return ret;
     }
 }

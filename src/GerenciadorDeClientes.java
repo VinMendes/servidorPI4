@@ -28,25 +28,50 @@ public class GerenciadorDeClientes extends Thread {
 
                 // Extrair a operação, cliente e documento da string recebida
                 String[] partes = linha.split(";", 3);
-                if (partes.length == 3) {
+                if (partes.length > 0) {
                     String op = partes[0].trim();
 
-                    if (op.equals("1")) {
-                        handleInsert(partes[1].trim(), partes[2].trim(), escritor);
-                    } else if(op.equals("2")) {
-                        handleAddPoint(partes[1].trim(), partes[2].trim(), escritor);
-                    }
-                    else {
-                        handleBusca(partes[1].trim(), partes[2].trim(), escritor);
+                    switch (op) {
+                        case "1":
+                            if (partes.length >= 3) {
+                                handleInsert(partes[1].trim(), partes[2].trim(), escritor);
+                            } else {
+                                handleException(escritor, "Parâmetros insuficientes para inserção", null);
+                            }
+                            break;
+                        case "2":
+                            if (partes.length >= 3) {
+                                handleAddPoint(partes[1].trim(), partes[2].trim(), escritor);
+                            } else {
+                                handleException(escritor, "Parâmetros insuficientes para adicionar ponto", null);
+                            }
+                            break;
+                        case "3":
+                            if (partes.length >= 3) {
+                                handleBusca(partes[1].trim(), partes[2].trim(), escritor);
+                            } else {
+                                handleException(escritor, "Parâmetros insuficientes para busca", null);
+                            }
+                            break;
+                        case "4":
+                            if (partes.length >= 2) {
+                                handleBuscaPontos(partes[1].trim(), escritor);
+                            } else {
+                                handleException(escritor, "Parâmetros insuficientes para buscar pontos", null);
+                            }
+                            break;
+                        default:
+                            handleException(escritor, "Operação inválida", null);
                     }
                 } else {
                     System.err.println("Formato inválido recebido: " + linha);
+                    handleException(escritor, "Formato inválido", null);
                 }
             } else {
                 System.out.println("Nenhuma mensagem recebida do cliente [" + cliente.getInetAddress() + "].");
             }
         } catch (Exception e) {
-            System.err.println("Erro ao gerenciar cliente: " + e.getMessage());
+            handleException(escritor, "Erro ao gerenciar cliente", e);
         } finally {
             try {
                 if (leitor != null) leitor.close();
@@ -86,14 +111,25 @@ public class GerenciadorDeClientes extends Thread {
             escritor.write(ret);
             escritor.newLine();
             escritor.flush();
-        }catch (Exception e) {
-            handleException(escritor, "Error para buscar", e);
+        } catch (Exception e) {
+            handleException(escritor, "Erro ao realizar busca", e);
         }
     }
 
-    private static void  handleException(BufferedWriter escritor, String message, Exception e) {
+    private static void handleBuscaPontos(String firebaseUID, BufferedWriter escritor) {
         try {
-            escritor.write(message + ": " + e.getMessage());
+            String resultado = MongoDB.buscarDetalhesProgramasPorFirebaseUID(firebaseUID);
+            escritor.write(resultado);
+            escritor.newLine();
+            escritor.flush();
+        } catch (Exception e) {
+            handleException(escritor, "Erro ao buscar pontos", e);
+        }
+    }
+
+    private static void handleException(BufferedWriter escritor, String message, Exception e) {
+        try {
+            escritor.write(message + (e != null ? ": " + e.getMessage() : ""));
             escritor.newLine();
             escritor.flush();
         } catch (Exception ex) {
