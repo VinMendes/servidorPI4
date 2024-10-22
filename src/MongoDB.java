@@ -114,11 +114,9 @@ public class MongoDB {
     }
 
     public static String buscarDetalhesProgramasPorFirebaseUID(String firebaseUID) {
-
-        String ret = null;
+        StringBuilder result = new StringBuilder();
         MongoClient mongoClient = null;
         Iterator<Document> iterator = null;
-        StringBuilder result = new StringBuilder();
 
         try {
             mongoClient = MongoClients.create(settings);
@@ -136,12 +134,13 @@ public class MongoDB {
                 FindIterable<Document> pontosDocs = pontosCollection.find(new Document("codigoCliente", codigoCliente));
                 iterator = pontosDocs.iterator();
 
+                // Iterar sobre todos os pontos
                 while (iterator.hasNext()) {
                     Document pontoDoc = iterator.next();
                     String codigoPrograma = pontoDoc.getString("codigoPrograma");
                     int pontuacaoAtual = pontoDoc.getInteger("pontuacaoAtual", 0);
 
-                    // Buscar detalhes do programa na coleção de programas
+                    // Buscar detalhes do programa
                     MongoCollection<Document> programasCollection = database.getCollection("programas");
                     Document programaDoc = programasCollection.find(new Document("_id", new ObjectId(codigoPrograma))).first();
 
@@ -150,21 +149,21 @@ public class MongoDB {
                         String descricaoPrograma = programaDoc.getString("descricaoDoPrograma");
                         int pontosNecessarios = programaDoc.getInteger("qtdDePontosNecessarios", 0);
 
-                        // Buscar o nome da empresa na coleção de empresas
+                        // Buscar nome da empresa
                         MongoCollection<Document> empresasCollection = database.getCollection("empresas");
                         Document empresaDoc = empresasCollection.find(new Document("_id", new ObjectId(codigoEmpresa))).first();
 
                         if (empresaDoc != null) {
                             String nomeEmpresa = empresaDoc.getString("nome");
 
-                            // Montar o resultado em um documento JSON
+                            // Montar o resultado em um documento JSON e adicionar ao StringBuilder
                             Document retDoc = new Document();
                             retDoc.put("empresa", nomeEmpresa);
                             retDoc.put("descricao", descricaoPrograma);
                             retDoc.put("pontosNecessarios", pontosNecessarios);
                             retDoc.put("pontuacaoAtual", pontuacaoAtual);
 
-                            result.append(retDoc.toJson()).append("\n");
+                            result.append(retDoc.toJson()).append(";");
                         }
                     }
                 }
@@ -179,12 +178,11 @@ public class MongoDB {
             }
         }
 
-        if(!result.isEmpty()) {
-            ret = result.toString();
+        // Verificar se há resultados
+        if (result.length() > 0) {
+            return result.toString();
         } else {
-            ret = "Nenhum programa encontrado";
+            return "Nenhum programa encontrado.";
         }
-
-        return ret;
     }
 }
