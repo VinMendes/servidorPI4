@@ -107,7 +107,7 @@ public class GerenciadorDeClientes extends Thread {
 
     private static void handleBusca(String info, String colecao, BufferedWriter escritor) {
         try {
-            String ret = MongoDB.getInfoCliente(info, colecao);
+            String ret = MongoDB.buscarUmDocumento(info, colecao);
             escritor.write(ret);
             escritor.newLine();
             escritor.flush();

@@ -83,7 +83,7 @@ public class MongoDB {
         }
     }
 
-    public static String getInfoCliente(String infoBusca, String colecao) {
+    public static String buscarUmDocumento(String infoBusca, String colecao) {
 
         MongoClient mongoClient = null;
         String ret = null;
