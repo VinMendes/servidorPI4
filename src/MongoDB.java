@@ -41,7 +41,7 @@ public class MongoDB {
     }
 
     // Função para adicionar um ponto à pontuação de um cliente
-    public static void adcPonto(String codigoPrograma, String codigoCliente) {
+    public static void adcPonto(String codigoPrograma, String cpf) {
 
         MongoClient mongoClient = null;
 
@@ -49,14 +49,19 @@ public class MongoDB {
             mongoClient = MongoClients.create(settings);
             MongoDatabase database = mongoClient.getDatabase("fideliza");
             MongoCollection<Document> collection = database.getCollection("pontos");
+            MongoCollection<Document> collectionClientes = database.getCollection("clientes");
+
+            Document ax = collectionClientes.find(Document.parse("{ \"cpf\" : \"" + cpf + "\" }")).first();
+            String codigoCliente = ax.getObjectId("_id").toString();
+
 
             // Filtro para localizar o cliente e o programa de fidelidade
             Bson filtro = new Document("codigoPrograma", codigoPrograma)
                     .append("codigoCliente", codigoCliente);
-
+            //6705bdcd9d914ea08d05550e
             // Verifica se o documento já existe
             Document clientePonto = collection.find(filtro).first();
-
+            //1111111111
             if (clientePonto != null) {
                 // Se o documento existir, incrementa a pontuação em 1
                 collection.updateOne(filtro, Updates.inc("pontos", 1));

@@ -86,22 +86,22 @@ public class GerenciadorDeClientes extends Thread {
     private static void handleInsert(String documento, String colecao, BufferedWriter escritor) {
         try {
             MongoDB.insertDocument(documento, colecao);
-            escritor.write("Sucesso ao inserir documento: " + documento);
+            escritor.write("Sucesso");
             escritor.newLine();
             escritor.flush();
         } catch (Exception e) {
-            handleException(escritor, "Erro ao inserir documento", e);
+            handleException(escritor, "Erro: ", e);
         }
     }
 
     private static void handleAddPoint(String cliente, String programa, BufferedWriter escritor) {
         try {
             MongoDB.adcPonto(cliente, programa);
-            escritor.write("Sucesso ao adicionar ponto ao cliente: " + programa);
+            escritor.write("Sucesso");
             escritor.newLine();
             escritor.flush();
         } catch (Exception e) {
-            handleException(escritor, "Erro ao adicionar ponto", e);
+            handleException(escritor, "Erro: ", e);
         }
     }
 
@@ -112,7 +112,7 @@ public class GerenciadorDeClientes extends Thread {
             escritor.newLine();
             escritor.flush();
         } catch (Exception e) {
-            handleException(escritor, "Erro ao realizar busca", e);
+            handleException(escritor, "Erro: ", e);
         }
     }
 
@@ -123,17 +123,19 @@ public class GerenciadorDeClientes extends Thread {
             escritor.newLine();
             escritor.flush();
         } catch (Exception e) {
-            handleException(escritor, "Erro ao buscar pontos", e);
+            handleException(escritor, "Erro: ", e);
         }
     }
 
     private static void handleException(BufferedWriter escritor, String message, Exception e) {
         try {
-            escritor.write(message + (e != null ? ": " + e.getMessage() : ""));
-            escritor.newLine();
-            escritor.flush();
+            if(e != null) {
+                escritor.write(message + e.getMessage());
+                escritor.newLine();
+                escritor.flush();
+            }
         } catch (Exception ex) {
-            System.err.println("Erro ao enviar mensagem de erro para o cliente: " + ex.getMessage());
+            System.err.println("Erro: " + ex.getMessage());
         }
     }
 }
