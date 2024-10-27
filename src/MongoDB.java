@@ -1,15 +1,11 @@
 import com.mongodb.*;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Updates;
-import org.bson.BsonDocument;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
 
 public class MongoDB {
 
@@ -54,14 +50,13 @@ public class MongoDB {
             Document ax = collectionClientes.find(Document.parse("{ \"cpf\" : \"" + cpf + "\" }")).first();
             String codigoCliente = ax.getObjectId("_id").toString();
 
-
             // Filtro para localizar o cliente e o programa de fidelidade
             Bson filtro = new Document("codigoPrograma", codigoPrograma)
                     .append("codigoCliente", codigoCliente);
-            //6705bdcd9d914ea08d05550e
+
             // Verifica se o documento já existe
             Document clientePonto = collection.find(filtro).first();
-            //1111111111
+
             if (clientePonto != null) {
                 // Se o documento existir, incrementa a pontuação em 1
                 collection.updateOne(filtro, Updates.inc("pontuacaoAtual", 1));
