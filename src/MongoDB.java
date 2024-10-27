@@ -64,7 +64,7 @@ public class MongoDB {
             //1111111111
             if (clientePonto != null) {
                 // Se o documento existir, incrementa a pontuação em 1
-                collection.updateOne(filtro, Updates.inc("pontos", 1));
+                collection.updateOne(filtro, Updates.inc("pontuacaoAtual", 1));
                 System.out.println("Ponto adicionado para o cliente: " + codigoCliente);
             } else {
                 // Se o documento não existir, cria um novo

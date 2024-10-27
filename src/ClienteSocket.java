@@ -15,7 +15,7 @@ public class ClienteSocket {
 
         try {
             // Conecta ao servidor na porta 12345
-            socket = new Socket("localhost", 12345);
+            socket = new Socket("54.94.21.251", 12345);
             System.out.println("Conectado ao servidor: " + socket.getRemoteSocketAddress());
 
             // Prepara leitores e escritores para o console e o servidor
@@ -46,10 +46,10 @@ public class ClienteSocket {
                 mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
 
             } else if ("2".equals(operacao)) {
-                System.out.print("Insira o código do cliente: ");
+                System.out.print("Insira o código do programa ");
                 documentoOuCliente = consoleReader.readLine();
 
-                System.out.print("Insira o nome do programa de pontos: ");
+                System.out.print("Insira o CPF: ");
                 colecaoOuPrograma = consoleReader.readLine();
 
                 mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
