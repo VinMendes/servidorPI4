@@ -70,7 +70,7 @@ public class MongoDB {
                 // Se o documento não existir, cria um novo
                 Document novoPonto = new Document("codigoPrograma", codigoPrograma)
                         .append("codigoCliente", codigoCliente)
-                        .append("pontos", 1);
+                        .append("pontuacaoAtual", 1);
                 collection.insertOne(novoPonto);
                 System.out.println("Novo registro criado e ponto adicionado para o cliente: " + codigoCliente);
             }
