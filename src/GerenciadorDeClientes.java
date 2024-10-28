@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class GerenciadorDeClientes extends Thread {
@@ -21,13 +18,13 @@ public class GerenciadorDeClientes extends Thread {
         try {
             leitor = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
             escritor = new BufferedWriter(new OutputStreamWriter(cliente.getOutputStream()));
-            String linha = leitor.readLine();  // Lê apenas uma linha e encerra
+            String linha = leitor.readLine();
 
             if (linha != null) {
                 System.out.println("Recebido do cliente [" + cliente.getInetAddress() + "]: " + linha);
 
                 // Extrair a operação, cliente e documento da string recebida
-                String[] partes = linha.split(";", 3);
+                String[] partes = linha.split(";", 4);
                 if (partes.length > 0) {
                     String op = partes[0].trim();
 
@@ -36,42 +33,60 @@ public class GerenciadorDeClientes extends Thread {
                             if (partes.length >= 3) {
                                 handleInsert(partes[1].trim(), partes[2].trim(), escritor);
                             } else {
-                                handleException(escritor, "Parâmetros insuficientes para inserção", null);
+                                escritor.write("Erro: Parâmetros insuficientes para inserção");
+                                escritor.newLine();
+                                escritor.flush();
                             }
                             break;
                         case "2":
-                            if (partes.length >= 3) {
-                                handleAddPoint(partes[1].trim(), partes[2].trim(), escritor);
+                            if (partes.length >= 4) {
+                                handleAddPoint(partes[1].trim(), partes[2].trim(), partes[3], escritor);
                             } else {
-                                handleException(escritor, "Parâmetros insuficientes para adicionar ponto", null);
+                                escritor.write("Erro: Parâmetros insuficientes para adicionar ponto");
+                                escritor.newLine();
+                                escritor.flush();
                             }
                             break;
                         case "3":
                             if (partes.length >= 3) {
                                 handleBusca(partes[1].trim(), partes[2].trim(), escritor);
                             } else {
-                                handleException(escritor, "Parâmetros insuficientes para busca", null);
+                                escritor.write("Erro: Parâmetros insuficientes para busca");
+                                escritor.newLine();
+                                escritor.flush();
                             }
                             break;
                         case "4":
                             if (partes.length >= 2) {
                                 handleBuscaPontos(partes[1].trim(), escritor);
                             } else {
-                                handleException(escritor, "Parâmetros insuficientes para buscar pontos", null);
+                                escritor.write("Erro: Parâmetros insuficientes para buscar pontos");
+                                escritor.newLine();
+                                escritor.flush();
                             }
                             break;
                         default:
-                            handleException(escritor, "Operação inválida", null);
+                            escritor.write("Erro: Operação inválida");
+                            escritor.newLine();
+                            escritor.flush();
                     }
                 } else {
                     System.err.println("Formato inválido recebido: " + linha);
-                    handleException(escritor, "Formato inválido", null);
+                    escritor.write("Erro: Formato inválido");
+                    escritor.newLine();
+                    escritor.flush();
                 }
             } else {
                 System.out.println("Nenhuma mensagem recebida do cliente [" + cliente.getInetAddress() + "].");
             }
         } catch (Exception e) {
-            handleException(escritor, "Erro ao gerenciar cliente", e);
+            try {
+                escritor.write("Erro: " + e.getMessage());
+                escritor.newLine();
+                escritor.flush();
+            } catch (IOException ioException) {
+                System.err.println("Erro ao enviar mensagem de erro para o cliente: " + ioException.getMessage());
+            }
         } finally {
             try {
                 if (leitor != null) leitor.close();
@@ -83,25 +98,31 @@ public class GerenciadorDeClientes extends Thread {
         }
     }
 
-    private static void handleInsert(String documento, String colecao, BufferedWriter escritor) {
+    private static void handleInsert(String documento, String colecao, BufferedWriter escritor) throws IOException {
         try {
             MongoDB.insertDocument(documento, colecao);
             escritor.write("Sucesso");
             escritor.newLine();
             escritor.flush();
+            System.out.println("Documento inserido com sucesso na coleção: " + colecao);
         } catch (Exception e) {
-            handleException(escritor, "Erro: ", e);
+            escritor.write("Erro: " + e.getMessage()); // Inclui "Erro: " no início da mensagem
+            escritor.newLine();
+            escritor.flush();
         }
     }
 
-    private static void handleAddPoint(String cliente, String programa, BufferedWriter escritor) {
+    private static void handleAddPoint(String cliente, String programa, String doc, BufferedWriter escritor) throws IOException {
         try {
-            MongoDB.adcPonto(cliente, programa);
+            MongoDB.adcPonto(cliente, programa, doc);
             escritor.write("Sucesso");
             escritor.newLine();
             escritor.flush();
+            System.out.println("Ponto adicionado para o cliente: " + cliente);
         } catch (Exception e) {
-            handleException(escritor, "Erro: ", e);
+            escritor.write("Erro: " + e.getMessage());
+            escritor.newLine();
+            escritor.flush();
         }
     }
 
@@ -112,7 +133,13 @@ public class GerenciadorDeClientes extends Thread {
             escritor.newLine();
             escritor.flush();
         } catch (Exception e) {
-            handleException(escritor, "Erro: ", e);
+            try {
+                escritor.write("Erro: " + e.getMessage());
+                escritor.newLine();
+                escritor.flush();
+            } catch (IOException ioException) {
+                System.err.println("Erro ao enviar mensagem de erro para o cliente: " + ioException.getMessage());
+            }
         }
     }
 
@@ -123,19 +150,13 @@ public class GerenciadorDeClientes extends Thread {
             escritor.newLine();
             escritor.flush();
         } catch (Exception e) {
-            handleException(escritor, "Erro: ", e);
-        }
-    }
-
-    private static void handleException(BufferedWriter escritor, String message, Exception e) {
-        try {
-            if(e != null) {
-                escritor.write(message + e.getMessage());
+            try {
+                escritor.write("Erro: " + e.getMessage());
                 escritor.newLine();
                 escritor.flush();
+            } catch (IOException ioException) {
+                System.err.println("Erro ao enviar mensagem de erro para o cliente: " + ioException.getMessage());
             }
-        } catch (Exception ex) {
-            System.err.println("Erro: " + ex.getMessage());
         }
     }
 }

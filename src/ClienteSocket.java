@@ -11,7 +11,6 @@ public class ClienteSocket {
         BufferedReader consoleReader = null;
         BufferedReader servidorReader = null;
         BufferedWriter servidorWriter = null;
-        String mensagem = null;
 
         try {
             // Conecta ao servidor na porta 12345
@@ -32,49 +31,58 @@ public class ClienteSocket {
 
             String operacao = consoleReader.readLine();
 
-            // Solicita os dados baseados na operação
-            String documentoOuCliente = "";
-            String colecaoOuPrograma = "";
+            // Declaração de variáveis específicas para cada campo
+            String documentoJson = "";
+            String colecaoNome = "";
+            String codigoPrograma = "";
+            String cpfCliente = "";
+            String firebaseUID = "";
 
+            String mensagem = null;
+
+            // Solicita os dados baseados na operação
             if ("1".equals(operacao)) {
                 System.out.print("Insira o documento em formato JSON: ");
-                documentoOuCliente = consoleReader.readLine();
+                documentoJson = consoleReader.readLine();
 
                 System.out.print("Insira o nome da coleção: ");
-                colecaoOuPrograma = consoleReader.readLine();
+                colecaoNome = consoleReader.readLine();
 
-                mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+                mensagem = operacao + ";" + documentoJson + ";" + colecaoNome;
 
             } else if ("2".equals(operacao)) {
-                System.out.print("Insira o código do programa ");
-                documentoOuCliente = consoleReader.readLine();
+                System.out.print("Insira o Firebase UID da empresa: ");
+                firebaseUID = consoleReader.readLine();
 
-                System.out.print("Insira o CPF: ");
-                colecaoOuPrograma = consoleReader.readLine();
+                System.out.print("Insira o CPF do cliente: ");
+                cpfCliente = consoleReader.readLine();
 
-                mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+                System.out.print("Insira o documento JSON adicional para o histórico: ");
+                documentoJson = consoleReader.readLine();
+
+                mensagem = operacao + ";" + firebaseUID + ";" + cpfCliente + ";" + documentoJson;
 
             } else if ("3".equals(operacao)) {
                 System.out.print("Insira o documento para busca: ");
-                documentoOuCliente = consoleReader.readLine();
+                documentoJson = consoleReader.readLine();
 
                 System.out.print("Insira a coleção: ");
-                colecaoOuPrograma = consoleReader.readLine();
+                colecaoNome = consoleReader.readLine();
 
-                mensagem = operacao + ";" + documentoOuCliente + ";" + colecaoOuPrograma;
+                mensagem = operacao + ";" + documentoJson + ";" + colecaoNome;
 
             } else if ("4".equals(operacao)) {
-                System.out.print("Insira o firebaseUID do cliente: ");
-                documentoOuCliente = consoleReader.readLine();
+                System.out.print("Insira o firebaseUID da empresa: ");
+                firebaseUID = consoleReader.readLine();
 
-                mensagem = operacao + ";" + documentoOuCliente;
+                mensagem = operacao + ";" + firebaseUID;
 
             } else {
                 System.out.println("Operação inválida!");
                 return;
             }
 
-            // Envia os dados para o servidor no formato: operação;documentoOuCliente;colecaoOuPrograma
+            // Envia os dados para o servidor no formato: operação;documento;colecao
             servidorWriter.write(mensagem);
             servidorWriter.newLine();
             servidorWriter.flush();
