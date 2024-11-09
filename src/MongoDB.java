@@ -86,8 +86,7 @@ public class MongoDB {
                     Document recompensaDoc = new Document()
                             .append("codigoEmpresa", empresaId.toHexString())
                             .append("codigoCliente", clienteId.toHexString())
-                            .append("data", new Date())
-                            .append("descricao", "Recompensa concedida pela pontuação atingida.");
+                            .append("data", new Date());
                     recompensasCollection.insertOne(recompensaDoc);
                     System.out.println("Recompensa criada com sucesso.");
                 } else {
@@ -215,5 +214,81 @@ public class MongoDB {
         } else {
             return "Nenhum programa encontrado.";
         }
+    }
+
+    public static String BuscaDetalhadaRecompensas(String firebaseUID) {
+
+        StringBuilder result = new StringBuilder();
+        MongoClient mongoClient = null;
+
+        try {
+            mongoClient = MongoClients.create(settings);
+            MongoDatabase database = mongoClient.getDatabase("fideliza");
+
+            // Obter Object ID do cliente
+            MongoCollection<Document> clienteCollection = database.getCollection("clientes");
+            Document clienteDoc = clienteCollection.find(new Document("firebaseUID", firebaseUID)).first();
+
+            if (clienteDoc != null) {
+                ObjectId codigoCliente = clienteDoc.getObjectId("_id");
+                System.out.println("Cliente encontrado: " + clienteDoc.toJson());
+                System.out.println("codigoCliente (ObjectId): " + codigoCliente);
+
+                // Obter o único programa
+                MongoCollection<Document> programasCollection = database.getCollection("programas");
+                Document programaDoc = programasCollection.find().first();
+
+                if (programaDoc != null) {
+                    String descricaoPrograma = programaDoc.getString("descricaoDoPrograma");
+
+                    // Obter dados a respeito de cada recompensa
+                    MongoCollection<Document> recompensaCollection = database.getCollection("recompensas");
+                    FindIterable<Document> recompensaDocs = recompensaCollection.find(new Document("codigoCliente", codigoCliente.toHexString()));
+
+                    for (Document recompensa : recompensaDocs) {
+                        System.out.println("Recompensa encontrada: " + recompensa.toJson());
+
+                        String codigoEmpresa = recompensa.getString("codigoEmpresa");
+                        Date data = recompensa.getDate("data");
+
+                        MongoCollection<Document> empresasCollection = database.getCollection("empresas");
+                        Document empresaDoc = empresasCollection.find(new Document("_id", new ObjectId(codigoEmpresa))).first();
+
+                        if (empresaDoc != null) {
+                            String nomeEmpresa = empresaDoc.getString("nome");
+
+                            // Montar o resultado em um documento JSON e adicionar ao StringBuilder
+                            Document retDoc = new Document();
+                            retDoc.put("empresa", nomeEmpresa);
+                            retDoc.put("descricao", descricaoPrograma);
+                            retDoc.put("data", data);
+
+                            result.append(retDoc.toJson()).append(";");
+                        } else {
+                            System.err.println("Erro: Empresa não encontrada para o código fornecido.");
+                        }
+                    }
+
+                } else {
+                    System.out.println("Programa não encontrado");
+                    result.append("Programa não encontrado");
+                }
+            } else {
+                System.out.println("Cliente não encontrado com o firebaseUID");
+                result.append("Cliente não encontrado com o firebaseUID");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar recompensas: " + e.getMessage());
+            result.append("Erro ao buscar recompensas: ").append(e.getMessage());
+        } finally {
+            if (mongoClient != null) mongoClient.close();
+        }
+
+        if(result.length() < 1) {
+            return "Nenhum documento encontrado";
+        }
+
+        return result.toString();
     }
 }

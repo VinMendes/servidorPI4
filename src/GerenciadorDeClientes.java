@@ -65,6 +65,15 @@ public class GerenciadorDeClientes extends Thread {
                                 escritor.flush();
                             }
                             break;
+                        case "5":
+                            if(partes.length >= 2) {
+                                handleBuscaReconpensas(partes[1].trim(), escritor);
+                            } else {
+                                escritor.write("Erro: Parâmetros insuficientes para buscar pontos");
+                                escritor.newLine();
+                                escritor.flush();
+                            }
+                            break;
                         default:
                             escritor.write("Erro: Operação inválida");
                             escritor.newLine();
@@ -146,6 +155,23 @@ public class GerenciadorDeClientes extends Thread {
     private static void handleBuscaPontos(String firebaseUID, BufferedWriter escritor) {
         try {
             String resultado = MongoDB.buscarDetalhesProgramasPorFirebaseUID(firebaseUID);
+            escritor.write(resultado);
+            escritor.newLine();
+            escritor.flush();
+        } catch (Exception e) {
+            try {
+                escritor.write("Erro: " + e.getMessage());
+                escritor.newLine();
+                escritor.flush();
+            } catch (IOException ioException) {
+                System.err.println("Erro ao enviar mensagem de erro para o cliente: " + ioException.getMessage());
+            }
+        }
+    }
+
+    private static void handleBuscaReconpensas(String firebaseUID, BufferedWriter escritor) {
+        try {
+            String resultado = MongoDB.BuscaDetalhadaRecompensas(firebaseUID);
             escritor.write(resultado);
             escritor.newLine();
             escritor.flush();

@@ -28,6 +28,7 @@ public class ClienteSocket {
             System.out.println("2 para adicionar ponto");
             System.out.println("3 para consultar um documento");
             System.out.println("4 para buscar programas de fidelidade pelo firebaseUID");
+            System.out.println("5 para buscar recompensas pelo firebaseUID");
 
             String operacao = consoleReader.readLine();
 
@@ -77,6 +78,11 @@ public class ClienteSocket {
 
                 mensagem = operacao + ";" + firebaseUID;
 
+            } else if ("5".equals(operacao)) {
+                System.out.println("Insira o firebaseUId do cliente: ");
+                firebaseUID = consoleReader.readLine();
+
+                mensagem = operacao + ";" + firebaseUID;
             } else {
                 System.out.println("Operação inválida!");
                 return;
