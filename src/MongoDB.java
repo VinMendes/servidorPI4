@@ -64,6 +64,8 @@ public class MongoDB {
             MongoCollection<Document> pontosCollection = database.getCollection("pontos");
             Document pontoDoc = pontosCollection.find(filter).first();
 
+            int pontosNecessarios = 5; // Defina o valor conforme o seu sistema de recompensas
+
             if (pontoDoc == null) {
                 // Se não encontrar, cria um novo documento de pontos com pontuacaoAtual = 1
                 Document novoPontoDoc = new Document()
@@ -73,10 +75,27 @@ public class MongoDB {
                 pontosCollection.insertOne(novoPontoDoc);
                 System.out.println("Novo documento de pontos criado com pontuacaoAtual = 1.");
             } else {
-                // Se encontrar, incrementa a pontuação
-                Document update = new Document("$inc", new Document("pontuacaoAtual", 1));
-                pontosCollection.findOneAndUpdate(filter, update);
-                System.out.println("Pontuação atualizada com sucesso para o cliente.");
+                int pontuacaoAtual = pontoDoc.getInteger("pontuacaoAtual");
+
+                // Verifica se a pontuação atual menos os pontos necessários é igual a 1
+                if ((pontosNecessarios - pontuacaoAtual) == 1) {
+                    // Deleta o documento e cria um novo na coleção recompensas
+                    pontosCollection.deleteOne(filter);
+
+                    MongoCollection<Document> recompensasCollection = database.getCollection("recompensas");
+                    Document recompensaDoc = new Document()
+                            .append("codigoEmpresa", empresaId.toHexString())
+                            .append("codigoCliente", clienteId.toHexString())
+                            .append("data", new Date())
+                            .append("descricao", "Recompensa concedida pela pontuação atingida.");
+                    recompensasCollection.insertOne(recompensaDoc);
+                    System.out.println("Recompensa criada com sucesso.");
+                } else {
+                    // Se a pontuação atual não está próxima dos pontos necessários, incrementa a pontuação
+                    Document update = new Document("$inc", new Document("pontuacaoAtual", 1));
+                    pontosCollection.findOneAndUpdate(filter, update);
+                    System.out.println("Pontuação atualizada com sucesso para o cliente.");
+                }
             }
 
             // Inserir os dados no histórico
